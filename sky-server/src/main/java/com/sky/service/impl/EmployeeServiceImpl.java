@@ -81,13 +81,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         employee.setStatus(StatusConstant.ENABLE);
         //设置默认密码
         employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
-        //设置创建和更新时间
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
-        //设置创建者和更新者
-        Long currentId = BaseContext.getCurrentId();
-        employee.setUpdateUser(currentId);
-        employee.setCreateUser(currentId);
         //插入数据
         Boolean success = employeeMapper.insert(employee);
         if (success) {
@@ -116,7 +109,9 @@ public class EmployeeServiceImpl implements EmployeeService {
      */
     @Override
     public Result updateStatus(Integer status, Long id) {
-        Boolean success = employeeMapper.updateStatus(status, id);
+        Employee.EmployeeBuilder employeeBuilder = Employee.builder().status(status)
+                .id(id).updateTime(LocalDateTime.now()).updateUser(BaseContext.getCurrentId());
+        Boolean success = employeeMapper.update(employeeBuilder.build());
         if (!success){
             return Result.error("修改失败！");
         }
@@ -148,8 +143,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     public Result updateEmployee(EmployeeDTO employeeDTO) {
         Employee employee = new Employee();
         BeanUtils.copyProperties(employeeDTO, employee);
-        employee.setUpdateTime(LocalDateTime.now());
-        employee.setUpdateUser(BaseContext.getCurrentId());
         Boolean success = employeeMapper.update(employee);
         if (!success) {
             return Result.error("更新失败！");
