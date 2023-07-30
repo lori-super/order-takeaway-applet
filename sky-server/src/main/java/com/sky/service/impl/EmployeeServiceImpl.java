@@ -2,7 +2,6 @@ package com.sky.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
@@ -20,11 +19,11 @@ import com.sky.result.Result;
 import com.sky.service.EmployeeService;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -107,6 +106,55 @@ public class EmployeeServiceImpl implements EmployeeService {
         PageHelper.startPage(pageQueryDTO.getPage(), pageQueryDTO.getPageSize());
         Page<Employee> employees = employeeMapper.queryPage(pageQueryDTO.getName());
         return Result.success(new PageResult(employees.getTotal(), employees.getResult()));
+    }
+
+    /**
+     * 更新员工状态
+     * @param status    需更新的状态值
+     * @param id    员工id
+     * @return
+     */
+    @Override
+    public Result updateStatus(Integer status, Long id) {
+        Boolean success = employeeMapper.updateStatus(status, id);
+        if (!success){
+            return Result.error("修改失败！");
+        }
+        return Result.success();
+    }
+
+    /**
+     * 更具员工id查询员工信息
+     * @param id
+     * @return
+     */
+    @Override
+    public Result<EmployeeDTO> queryById(Long id) {
+        Employee employee = employeeMapper.queryById(id);
+        if (employee == null) {
+            return Result.error("未找到该员工！");
+        }
+        EmployeeDTO employeeDTO = new EmployeeDTO();
+        BeanUtils.copyProperties(employee, employeeDTO);
+        return Result.success(employeeDTO);
+    }
+
+    /**
+     * 修改员工信息
+     * @param employeeDTO
+     * @return
+     */
+    @Override
+    public Result updateEmployee(EmployeeDTO employeeDTO) {
+        Employee employee = new Employee();
+        BeanUtils.copyProperties(employeeDTO, employee);
+        employee.setUpdateTime(LocalDateTime.now());
+        employee.setUpdateUser(BaseContext.getCurrentId());
+        Boolean success = employeeMapper.update(employee);
+        if (!success) {
+            return Result.error("更新失败！");
+        }
+        return Result.success();
     }
 
 }

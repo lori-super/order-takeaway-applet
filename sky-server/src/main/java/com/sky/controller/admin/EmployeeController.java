@@ -6,6 +6,7 @@ import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.entity.Employee;
 import com.sky.properties.JwtProperties;
+import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.EmployeeService;
 import com.sky.utils.JwtUtil;
@@ -91,6 +92,27 @@ public class EmployeeController {
     public Result pageList(EmployeePageQueryDTO employeePageQueryDTO){
         log.info("分页查询员工，{}", employeePageQueryDTO);
         return employeeService.queryPageList(employeePageQueryDTO);
+    }
+
+    @PostMapping("/status/{status}")
+    @ApiOperation("更改员工状态")
+    public Result updateStatus(@PathVariable("status") Integer status, @RequestParam Long id){
+        log.info("修改员工状态，员工号:{},状态:{}", id, status);
+        return employeeService.updateStatus(status, id);
+    }
+
+    @GetMapping("{id}")
+    @ApiOperation("根据员工ID查询员工信息")
+    public Result<EmployeeDTO> queryById(@PathVariable Long id){
+        log.info("查询员工信息, {}", id);
+        return employeeService.queryById(id);
+    }
+
+    @PutMapping
+    @ApiOperation("修改员工信息")
+    public Result updateEmployee(@RequestBody EmployeeDTO employeeDTO){
+        log.info("修改员工信息, {}", employeeDTO);
+        return employeeService.updateEmployee(employeeDTO);
     }
 
 }

@@ -28,4 +28,13 @@ public interface EmployeeMapper {
 
 
     Page<Employee> queryPage(String name);
+
+    @Update("update employee set status = #{status} where id = #{id}")
+    Boolean updateStatus(Integer status, Long id);
+
+    @Select("select * from employee where id = #{id}")
+    Employee queryById(Long id);
+
+
+    Boolean update(Employee employee);
 }
