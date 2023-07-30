@@ -15,8 +15,18 @@ public interface EmployeeService {
      */
     Employee login(EmployeeLoginDTO employeeLoginDTO);
 
+    /**
+     * 新增员工
+     * @param employeeDTO
+     * @return
+     */
     Result save(EmployeeDTO employeeDTO);
 
+    /**
+     * 分页查询
+     * @param employeePageQueryDTO
+     * @return
+     */
     Result queryPageList(EmployeePageQueryDTO employeePageQueryDTO);
 
     Result updateStatus(Integer status, Long id);
