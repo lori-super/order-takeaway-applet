@@ -7,7 +7,8 @@ sky:
     username: root
     password: 123456
   alioss:
-    access-key-id:
-    access-key-secret:
+    access-key-id: LTAI5tKsyUSWfhiNVrMaamxH
+    access-key-secret: 8kIj9u2csLK15QwvzJxLlQ2m1TsrHG
     bucket-name: yfh-waimai
     endpoint: oss-cn-beijing.aliyuncs.com
+

@@ -10,6 +10,8 @@ import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+import java.util.List;
+
 @Mapper
 public interface DishMapper {
 
@@ -35,4 +37,7 @@ public interface DishMapper {
 
     @AutoFill(OperationType.UPDATE)
     Boolean update(Dish dish);
+
+    @Select("select * from dish where category_id = #{categoryId}")
+    List<Dish> queryByCategoryId(Long categoryId);
 }

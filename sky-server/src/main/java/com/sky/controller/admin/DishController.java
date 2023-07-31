@@ -63,4 +63,12 @@ public class DishController {
         log.info("修改菜品信息, 修改信息：{}", dishDTO);
         return dishService.update(dishDTO);
     }
+
+
+    @GetMapping("/list")
+    @ApiOperation("套餐中，添加菜品接口")
+    public Result queryCategoryId(Long categoryId){
+        log.info("根据分类ID查询菜品， categoryId{}", categoryId);
+        return dishService.queryCategoryId(categoryId);
+    }
 }

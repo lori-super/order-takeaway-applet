@@ -34,4 +34,6 @@ public interface DishService {
     Result<DishVO> queryById(Long id);
 
     Result update(DishDTO dishDTO);
+
+    Result queryCategoryId(Long categoryId);
 }

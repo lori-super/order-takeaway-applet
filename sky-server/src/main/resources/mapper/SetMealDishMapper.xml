@@ -12,4 +12,19 @@
 
     </select>
 
+    <insert id="insert">
+        insert into setmeal_dish (setmeal_id, dish_id, name, price, copies)
+        values (#{setmealId}, #{dishId}, #{name}, #{price}, #{copies})
+    </insert>
+
+    <select id="queryByIdForDish" resultType="java.lang.Integer">
+        select count(*) from setmeal_dish s left outer join dish d on s.dish_id = d.id
+        <where>
+            <if test="setmealId != null">
+                and s.setmeal_id = #{setmealId}
+            </if>
+            and d.status = 0
+        </where>
+
+    </select>
 </mapper>

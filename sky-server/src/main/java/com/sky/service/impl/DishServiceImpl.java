@@ -11,6 +11,7 @@ import com.sky.dto.EmployeeDTO;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
 import com.sky.exception.DeletionNotAllowedException;
+import com.sky.exception.UpdateFailException;
 import com.sky.mapper.DishFlavorMapper;
 import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetMealDishMapper;
@@ -132,6 +133,12 @@ public class DishServiceImpl implements DishService {
             return Result.error( "更新菜品 or 口味失败！");
         }
         return Result.success();
+    }
+
+    @Override
+    public Result queryCategoryId(Long categoryId) {
+        List<Dish> dishs = dishMapper.queryByCategoryId(categoryId);
+        return Result.success(dishs);
     }
 
 
