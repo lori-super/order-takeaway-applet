@@ -13,6 +13,7 @@ import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
 import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
+import com.sky.exception.UpdateFailException;
 import com.sky.mapper.EmployeeMapper;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
@@ -80,7 +81,7 @@ public class EmployeeServiceImpl implements EmployeeService {
         //状态字段设置
         employee.setStatus(StatusConstant.ENABLE);
         //设置默认密码
-        employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
+        employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()).toUpperCase());
         //插入数据
         Boolean success = employeeMapper.insert(employee);
         if (success) {
@@ -109,8 +110,13 @@ public class EmployeeServiceImpl implements EmployeeService {
      */
     @Override
     public Result updateStatus(Integer status, Long id) {
+        Long currentId = BaseContext.getCurrentId();
+        if (currentId != 1){
+            //throw new UpdateFailException(MessageConstant.ADMIN_QUANLI);
+            return Result.error("非管理人员不可更改");
+        }
         Employee.EmployeeBuilder employeeBuilder = Employee.builder().status(status)
-                .id(id).updateTime(LocalDateTime.now()).updateUser(BaseContext.getCurrentId());
+                .id(id).updateTime(LocalDateTime.now()).updateUser(currentId);
         Boolean success = employeeMapper.update(employeeBuilder.build());
         if (!success){
             return Result.error("修改失败！");

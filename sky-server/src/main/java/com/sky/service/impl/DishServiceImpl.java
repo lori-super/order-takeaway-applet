@@ -1,9 +1,11 @@
 package com.sky.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.json.JSONUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
+import com.sky.constant.RedisConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
@@ -20,12 +22,12 @@ import com.sky.result.Result;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 public class DishServiceImpl implements DishService {
@@ -38,6 +40,9 @@ public class DishServiceImpl implements DishService {
 
     @Autowired
     private SetMealDishMapper setMealDishMapper;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
     /**
      * 新增菜品
      * @param dishDTO
@@ -61,6 +66,9 @@ public class DishServiceImpl implements DishService {
         if (!success || !successFlavor) {
             return Result.error( "新增菜品 or 口味失败！");
         }
+
+        String key = RedisConstant.DISH_INFO + dishDTO.getCategoryId().toString();
+        cleanCache(key);
         return Result.success();
     }
 
@@ -95,10 +103,20 @@ public class DishServiceImpl implements DishService {
             dishFlavorMapper.deleteById(id);
         }
 
+        String key = RedisConstant.DISH_INFO + "*";
+        cleanCache(key);
+
         return Result.success();
     }
 
+    /**
+     * 菜品起售 停售
+     * @param status
+     * @param id
+     * @return
+     */
     @Override
+    @Transactional
     public Result updateStatus(Integer status, Long id) {
         Dish dish = new Dish();
         dish.setStatus(status);
@@ -107,9 +125,16 @@ public class DishServiceImpl implements DishService {
         if (!success) {
             return Result.error("修改失败！");
         }
+        String key = RedisConstant.DISH_INFO + "*";
+        cleanCache(key);
         return Result.success();
     }
 
+    /**
+     * 修改菜品信息
+     * @param id
+     * @return
+     */
     @Override
     public Result<DishVO> queryById(Long id) {
         Dish dish = dishMapper.queryById(id);
@@ -118,6 +143,7 @@ public class DishServiceImpl implements DishService {
     }
 
     @Override
+    @Transactional
     public Result update(DishDTO dishDTO) {
         Dish dish = BeanUtil.copyProperties(dishDTO, Dish.class);
         Boolean success = dishMapper.update(dish);
@@ -134,6 +160,8 @@ public class DishServiceImpl implements DishService {
         if (!success || !successFlavor) {
             return Result.error( "更新菜品 or 口味失败！");
         }
+        String key = RedisConstant.DISH_INFO + dishDTO.getCategoryId().toString();
+        cleanCache(key);
         return Result.success();
     }
 
@@ -143,8 +171,20 @@ public class DishServiceImpl implements DishService {
         return Result.success(dishs);
     }
 
+    /**
+     * C端 根据分类ID查询菜品
+     * @param dish
+     * @return
+     */
     @Override
+    @Cacheable(cacheNames = RedisConstant.DISH_INFO, key = "#dish.categoryId")
     public List<DishVO> listWithFlavor(Dish dish) {
+//        String key = RedisConstant.DISH_INFO + dish.getCategoryId().toString();
+//        String json = stringRedisTemplate.opsForValue().get(key);
+//
+//        if (json != null) {
+//            return JSONUtil.toList(json, DishVO.class);
+//        }
         List<Dish> dishes = dishMapper.queryListFlavor(dish);
         List<DishVO> dishVOS = new ArrayList<>();
         for (Dish dish1 : dishes) {
@@ -153,8 +193,13 @@ public class DishServiceImpl implements DishService {
             dishVO.setFlavors(dishFlavors);
             dishVOS.add(dishVO);
         }
+        //stringRedisTemplate.opsForValue().set(key, JSONUtil.toJsonStr(dishVOS));
         return dishVOS;
     }
 
+    public void cleanCache(String pattern){
+        Set<String> keys = stringRedisTemplate.keys(pattern);
+        stringRedisTemplate.delete(keys);
+    }
 
 }

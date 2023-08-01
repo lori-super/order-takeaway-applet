@@ -4,6 +4,7 @@ import cn.hutool.core.bean.BeanUtil;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.constant.MessageConstant;
+import com.sky.constant.RedisConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
@@ -21,6 +22,9 @@ import com.sky.service.SetmealService;
 import com.sky.vo.DishItemVO;
 import com.sky.vo.SetmealVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,6 +41,8 @@ public class SetmealServiceImpl implements SetmealService {
 
     @Override
     @Transactional
+    @Caching(evict = {@CacheEvict(cacheNames = RedisConstant.SETMEAL_INFO, key = "#setmealDTO.categoryId"),
+            @CacheEvict(cacheNames = RedisConstant.SETMEAL_DISH, allEntries = true)})
     public Result insert(SetmealDTO setmealDTO) {
 
         Setmeal setmeal = BeanUtil.copyProperties(setmealDTO, Setmeal.class);
@@ -67,6 +73,7 @@ public class SetmealServiceImpl implements SetmealService {
 
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "setmeal", allEntries = true)
     public Result updateStatus(Integer status, Long id) {
         if (status == StatusConstant.ENABLE){
             Integer count = setMealDishMapper.queryByIdForDish(id);
@@ -83,14 +90,26 @@ public class SetmealServiceImpl implements SetmealService {
         return Result.success();
     }
 
+    /**
+     * 管理端 根据ID查询套餐
+     * @param id
+     * @return
+     */
     @Override
     public Result queryById(Long id) {
         SetmealVO setmealVO = setMealMapper.queryById(id);
         return Result.success(setmealVO);
     }
 
+    /**
+     * 修改套餐信息
+     * @param setmealDTO
+     * @return
+     */
     @Override
     @Transactional
+    @Caching(evict = {@CacheEvict(cacheNames = RedisConstant.SETMEAL_INFO, key = "#setmealDTO.categoryId"),
+                        @CacheEvict(cacheNames = RedisConstant.SETMEAL_DISH, key = "#setmealDTO.id")})
     public Result update(SetmealDTO setmealDTO) {
         List<SetmealDish> setmealDishes = setmealDTO.getSetmealDishes();
         setmealDishes.forEach(setmealDish -> {
@@ -105,8 +124,14 @@ public class SetmealServiceImpl implements SetmealService {
         return Result.success();
     }
 
+    /**
+     * 管理端批量删除套餐
+     * @param ids
+     * @return
+     */
     @Override
     @Transactional
+    @CacheEvict(cacheNames = "setmeal", allEntries = true)
     public Result delete(List<Long> ids) {
         //查询每个套餐状态，是否可以删除
         for (Long id : ids) {
@@ -127,11 +152,13 @@ public class SetmealServiceImpl implements SetmealService {
     }
 
     /**
+     * C端
      * 根据套餐id查询包含的菜品列表
      * @param id
      * @return
      */
     @Override
+    @Cacheable(cacheNames = RedisConstant.SETMEAL_DISH, key = "#id", unless="#result == null || #result.size() == 0")
     public List<DishItemVO> getDishItemById(Long id) {
         List<DishItemVO> dishItemVOS = setMealDishMapper.queryById(id);
         for (DishItemVO dishItemVO : dishItemVOS) {
@@ -142,7 +169,14 @@ public class SetmealServiceImpl implements SetmealService {
         return dishItemVOS;
     }
 
+    /**
+     * C端
+     * 根据分类id查询套餐
+     * @param setmeal
+     * @return
+     */
     @Override
+    @Cacheable(cacheNames = RedisConstant.SETMEAL_INFO, key = "#setmeal.categoryId", unless="#result == null || #result.size() == 0")
     public List<Setmeal> list(Setmeal setmeal) {
         List<Setmeal> setmeals = setMealMapper.query(setmeal);
         return setmeals;
