@@ -40,4 +40,10 @@ public interface DishMapper {
 
     @Select("select * from dish where category_id = #{categoryId}")
     List<Dish> queryByCategoryId(Long categoryId);
+
+    @Select("select * from dish where category_id = #{categoryId} and status = #{status}")
+    List<Dish> queryListFlavor(Dish dish);
+
+    @Select("select * from dish where name = #{name}")
+    Dish queryByName(String name);
 }

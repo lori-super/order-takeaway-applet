@@ -7,15 +7,18 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
+import com.sky.entity.Dish;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
 import com.sky.exception.UpdateFailException;
+import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetMealDishMapper;
 import com.sky.mapper.SetmealMapper;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.SetmealService;
+import com.sky.vo.DishItemVO;
 import com.sky.vo.SetmealVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,8 @@ public class SetmealServiceImpl implements SetmealService {
     private SetmealMapper setMealMapper;
     @Autowired
     private SetMealDishMapper setMealDishMapper;
+    @Autowired
+    private DishMapper dishMapper;
 
     @Override
     @Transactional
@@ -119,6 +124,28 @@ public class SetmealServiceImpl implements SetmealService {
         }
 
         return Result.success();
+    }
+
+    /**
+     * 根据套餐id查询包含的菜品列表
+     * @param id
+     * @return
+     */
+    @Override
+    public List<DishItemVO> getDishItemById(Long id) {
+        List<DishItemVO> dishItemVOS = setMealDishMapper.queryById(id);
+        for (DishItemVO dishItemVO : dishItemVOS) {
+            Dish dish = dishMapper.queryByName(dishItemVO.getName());
+            dishItemVO.setImage(dish.getImage());
+            dishItemVO.setDescription(dish.getDescription());
+        }
+        return dishItemVOS;
+    }
+
+    @Override
+    public List<Setmeal> list(Setmeal setmeal) {
+        List<Setmeal> setmeals = setMealMapper.query(setmeal);
+        return setmeals;
     }
 
 

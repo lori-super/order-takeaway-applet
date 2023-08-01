@@ -20,9 +20,11 @@ import com.sky.result.Result;
 import com.sky.service.DishService;
 import com.sky.vo.DishVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -139,6 +141,19 @@ public class DishServiceImpl implements DishService {
     public Result queryCategoryId(Long categoryId) {
         List<Dish> dishs = dishMapper.queryByCategoryId(categoryId);
         return Result.success(dishs);
+    }
+
+    @Override
+    public List<DishVO> listWithFlavor(Dish dish) {
+        List<Dish> dishes = dishMapper.queryListFlavor(dish);
+        List<DishVO> dishVOS = new ArrayList<>();
+        for (Dish dish1 : dishes) {
+            DishVO dishVO = BeanUtil.copyProperties(dish1, DishVO.class);
+            List<DishFlavor> dishFlavors = dishFlavorMapper.queryByDishId(dish1.getId());
+            dishVO.setFlavors(dishFlavors);
+            dishVOS.add(dishVO);
+        }
+        return dishVOS;
     }
 
 

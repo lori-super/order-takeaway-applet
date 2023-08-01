@@ -4,6 +4,7 @@ import com.sky.annotation.AutoFill;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
 import com.sky.dto.EmployeeDTO;
+import com.sky.entity.Dish;
 import com.sky.enumeration.OperationType;
 import com.sky.result.Result;
 import com.sky.vo.DishVO;
@@ -36,4 +37,7 @@ public interface DishService {
     Result update(DishDTO dishDTO);
 
     Result queryCategoryId(Long categoryId);
+
+
+    List<DishVO> listWithFlavor(Dish dish);
 }
