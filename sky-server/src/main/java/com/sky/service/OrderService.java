@@ -10,6 +10,8 @@ import com.sky.vo.OrderVO;
 public interface OrderService {
     Result submitOrder(OrdersSubmitDTO ordersSubmitDTO);
 
+    void paySuccess(String outTradeNo);
+
     OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO);
 
     Result queryHistory(OrdersPageQueryDTO ordersPageQueryDTO);
@@ -33,4 +35,6 @@ public interface OrderService {
     Result deliveryOrder(Long id);
 
     Result<OrderStatisticsVO> statisticsOrder();
+
+    void reminderOrder(Long id);
 }

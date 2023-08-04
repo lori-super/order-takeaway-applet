@@ -42,7 +42,15 @@ public class OrderController {
         log.info("订单支付：{}", ordersPaymentDTO);
         OrderPaymentVO orderPaymentVO = orderService.payment(ordersPaymentDTO);
         log.info("生成预支付交易单：{}", orderPaymentVO);
+        orderService.paySuccess(ordersPaymentDTO.getOrderNumber());
         return Result.success(orderPaymentVO);
+    }
+
+    @GetMapping("/reminder/{id}")
+    @ApiOperation("用户催单")
+    public void reminderOrder(@PathVariable Long id){
+        log.info("用户催单：order_id = {}", id);
+        orderService.reminderOrder(id);
     }
 
     @GetMapping("/historyOrders")
